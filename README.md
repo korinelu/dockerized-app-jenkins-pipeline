@@ -94,6 +94,12 @@ docker rm static-site || true
 🐳 DockerHub Image
 👉 korinelu/static-site-demo on DockerHub
 
+https://github.com/korinelu/dockerized-app-jenkins-pipeline
+
+https://hub.docker.com/r/korinelu/static-site-demo
+
+
+
 bash
 Copy
 Edit
