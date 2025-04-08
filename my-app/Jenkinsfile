@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'static-site-demo'
-        DOCKERHUB_USER = 'korinelu' // 🔁 Replace with your actual DockerHub username
+        DOCKERHUB_USER = 'korinelu'
     }
 
     stages {
@@ -19,13 +19,7 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'bcc4b264-a68d-4ede-b934-990d45787725',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )
-                ]) {
+                withCredentials([usernamePassword(credentialsId: 'bcc4b264-a68d-4ede-b934-990d45787725', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     sh 'docker push $DOCKER_USER/$IMAGE_NAME:latest'
                 }
@@ -35,7 +29,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'docker stop static-site || true && docker rm static-site || true'
-                sh 'docker run -d --name static-site -p 8080:80 $DOCKERHUB_USER/$IMAGE_NAME:latest'
+                sh 'docker run -d --name static-site -p 8081:80 $DOCKERHUB_USER/$IMAGE_NAME:latest'
             }
         }
     }
