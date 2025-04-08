@@ -3,16 +3,10 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'static-site-demo'
-        DOCKERHUB_USER = 'your_dockerhub_username'  // replace this
+        DOCKERHUB_USER = 'your_dockerhub_username' // 🔁 Replace with your DockerHub username
     }
 
     stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/<your-username>/dockerized-app-jenkins-pipeline.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
