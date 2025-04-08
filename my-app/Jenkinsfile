@@ -9,11 +9,13 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    script {
-                        dir('my-app') {
-                            sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
-                        }
+                script {
+                    dir('my-app') {
+                        // Lower Docker resource usage by avoiding cache and showing build logs
+                        sh '''
+                            echo "Building Docker image with minimal resource usage..."
+                            docker build --no-cache --memory=512m --cpus="0.5" -t $DOCKERHUB_USER/$IMAGE_NAME:latest .
+                        '''
                     }
                 }
             }
@@ -21,17 +23,31 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'bcc4b264-a68d-4ede-b934-990d45787725', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push $DOCKER_USER/$IMAGE_NAME:latest'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_USER/$IMAGE_NAME:latest
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker stop static-site || true && docker rm static-site || true'
-                sh 'docker run -d --name static-site -p 8081:80 $DOCKERHUB_USER/$IMAGE_NAME:latest'
+                script {
+                    // Stop and remove container if already exists
+                    sh '''
+                        docker stop static-site || true
+                        docker rm static-site || true
+                        
+                        # Run with low resource allocation
+                        docker run -d --name static-site --memory="512m" --cpus="0.5" -p 8080:80 $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    '''
+                }
             }
         }
     }
