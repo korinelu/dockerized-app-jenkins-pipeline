@@ -94,8 +94,17 @@ docker rm static-site || true
 🐳 DockerHub Image
 👉 korinelu/static-site-demo on DockerHub
 
+
 bash
 Copy
 Edit
 docker pull korinelu/static-site-demo
-docker run -d -p 8080:80 korinelu/static-site-demo
+docker run -d -p 8081:80 korinelu/static-site-demo
+
+https://github.com/korinelu/dockerized-app-jenkins-pipeline
+
+https://hub.docker.com/r/korinelu/static-site-demo
+
+
+
+
