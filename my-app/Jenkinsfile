@@ -42,7 +42,7 @@ pipeline {
                         docker stop static-site || true
                         docker rm static-site || true
 
-                        docker run -d --name static-site --memory="512m" --cpus="0.5" -p 8080:80 $DOCKERHUB_USER/$IMAGE_NAME:latest
+                        docker run -d --name static-site --memory="512m" --cpus="0.5" -p 8081:80 $DOCKERHUB_USER/$IMAGE_NAME:latest
                     '''
                 }
             }
