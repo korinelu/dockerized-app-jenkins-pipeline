@@ -11,10 +11,9 @@ pipeline {
             steps {
                 script {
                     dir('my-app') {
-                        // Lower Docker resource usage by avoiding cache and showing build logs
                         sh '''
-                            echo "Building Docker image with minimal resource usage..."
-                            docker build --no-cache --memory=512m --cpus="0.5" -t $DOCKERHUB_USER/$IMAGE_NAME:latest .
+                            echo "Building Docker image..."
+                            docker build --no-cache -t $DOCKERHUB_USER/$IMAGE_NAME:latest .
                         '''
                     }
                 }
@@ -39,12 +38,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Stop and remove container if already exists
                     sh '''
                         docker stop static-site || true
                         docker rm static-site || true
-                        
-                        # Run with low resource allocation
+
                         docker run -d --name static-site --memory="512m" --cpus="0.5" -p 8080:80 $DOCKERHUB_USER/$IMAGE_NAME:latest
                     '''
                 }
