@@ -3,21 +3,18 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'static-site-demo'
-        DOCKERHUB_USER = 'your_dockerhub_username'  // replace this
+        DOCKERHUB_USER = 'korinelu'
     }
 
     stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/<your-username>/dockerized-app-jenkins-pipeline.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     dir('my-app') {
-                        sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
+                        sh '''
+                            echo "Building Docker image..."
+                            docker build --no-cache -t $DOCKERHUB_USER/$IMAGE_NAME:latest .
+                        '''
                     }
                 }
             }
@@ -25,17 +22,29 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push $DOCKER_USER/$IMAGE_NAME:latest'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_USER/$IMAGE_NAME:latest
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker stop static-site || true && docker rm static-site || true'
-                sh 'docker run -d --name static-site -p 8080:80 $DOCKERHUB_USER/$IMAGE_NAME:latest'
+                script {
+                    sh '''
+                        docker stop static-site || true
+                        docker rm static-site || true
+
+                        docker run -d --name static-site --memory="512m" --cpus="0.5" -p 8081:80 $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    '''
+                }
             }
         }
     }
